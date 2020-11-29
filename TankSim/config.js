@@ -195,6 +195,16 @@ let weaponlists = {
     <option value="Vis'kag the Bloodletter">Vis'kag the Bloodletter</option>`,
 }
 
+let ohenchantlist = {
+    weapon: `<option value="None">None</option>
+        <option value="Agility">Agility</option>
+        <option value="Crusader">Crusader</option>
+        <option value="Strength">Strength</option>`,
+
+    shield: `<option value="None">None</option>
+        <option value="Greater Stamina">Greater Stamina</option>`,
+}
+
 function updateMHWeaponList(doUpdateStats)
 {
     let mhselect = document.getElementById("mainhand")
@@ -209,6 +219,16 @@ function updateOHWeaponList(doUpdateStats)
     let ohtype = document.getElementById("ohweptypelist").value
 
     ohselect.innerHTML = weaponlists[ohtype]
+    
+    let ohenchantselect = document.getElementById("ohwepenchant")
+    let index = ohenchantselect.selectedIndex
+    if(ohtype == "Shields") {
+        ohenchantselect.innerHTML = ohenchantlist.shield
+    } else {
+        ohenchantselect.innerHTML = ohenchantlist.weapon
+    }
+    if(index < ohenchantselect.length) ohenchantselect.selectedIndex = index
+
     if(doUpdateStats) updateStats();
 }
 
@@ -239,6 +259,7 @@ function updateStats()
     let cruelty = Number(document.getElementById("cruelty").value)
     let anticipation = Number(document.getElementById("anticipation").value)
     let toughness = Number(document.getElementById("toughness").value)
+    let shieldspec = Number(document.getElementById("shieldspec").value)
     _impHS = Number(document.getElementById("impHS").value) 
     _impSA = Number(document.getElementById("impSA").value) 
     _defiance = Number(document.getElementById("defiance").value) 
@@ -483,18 +504,20 @@ function updateStats()
     _windfuryAP = document.getElementById("impweptotems").checked ? 410 : 315;
     
     // Stat deltas input by user
-    let extrastrength = Number(document.getElementById("playerextrastrength").value);
-    let extrastamina = Number(document.getElementById("playerextrastamina").value);
-    let extraagility = Number(document.getElementById("playerextraagility").value);
-    let extrahit = Number(document.getElementById("playerextrahit").value);
-    let extracrit = Number(document.getElementById("playerextracrit").value);
+    let extrastrength    = Number(document.getElementById("playerextrastrength").value);
+    let extrastamina     = Number(document.getElementById("playerextrastamina").value);
+    let extraagility     = Number(document.getElementById("playerextraagility").value);
+    let extrahit         = Number(document.getElementById("playerextrahit").value);
+    let extracrit        = Number(document.getElementById("playerextracrit").value);
     let extraattackpower = Number(document.getElementById("playerextraattackpower").value);
-    let extraarmor = Number(document.getElementById("playerextraarmor").value);
-    let extraparry = Number(document.getElementById("playerextraparry").value);
-    let extradodge = Number(document.getElementById("playerextradodge").value);
-    let extradefense = Number(document.getElementById("playerextradefense").value);
-    let extramhskill = Number(document.getElementById("playerextramhskill").value);
-    let extraohskill = Number(document.getElementById("playerextraohskill").value);
+    let extraarmor       = Number(document.getElementById("playerextraarmor").value);
+    let extrablock       = Number(document.getElementById("playerextrablock").value);
+    let extrablockvalue  = Number(document.getElementById("playerextrablockvalue").value);
+    let extraparry       = Number(document.getElementById("playerextraparry").value);
+    let extradodge       = Number(document.getElementById("playerextradodge").value);
+    let extradefense     = Number(document.getElementById("playerextradefense").value);
+    let extramhskill     = Number(document.getElementById("playerextramhskill").value);
+    let extraohskill     = Number(document.getElementById("playerextraohskill").value);
 
     // Set bonuses
     if(mainhand == "Dal'Rend's Sacred Charge" && offhand == "Dal'Rend's Tribal Guardian") attackpower += 50;
@@ -502,7 +525,6 @@ function updateStats()
         mhwepskill += 6
         ohwepskill += 6
     }
-
 
 
     // Multiplicative buffs last, except for armor
@@ -536,21 +558,33 @@ function updateStats()
     strength = Math.floor(strength)
     stamina = Math.floor(stamina)
 
+    crit = crit + cruelty + agility/20 + (mhwepskill-300)*0.04
+
+    parry += 5 + deflection + defense*0.04
+    dodge += agility/20 + defense*0.04
+    block += shieldspec + 5 + defense*0.04
+    blockvalue += strength/20
+
+    block = _dualWield ? 0 : block
+    blockvalue = _dualWield ? 0 : blockvalue
+
     document.getElementById("playerhp").innerHTML = `${Math.round((stamina*10 + extrahp)*(document.getElementById("race").value == "Tauren" ? 1.05 : 1))}              `;
     document.getElementById("playerstrength").innerHTML = `${Math.round(strength)} `;
     document.getElementById("playerstamina").innerHTML = `${Math.round(stamina)} `;
     document.getElementById("playeragility").innerHTML = `${Math.round(agility)} `;
     document.getElementById("playerhit").innerHTML = `${hit} `;
-    document.getElementById("playercrit").innerHTML = `${Math.round((crit + cruelty + agility/20 + (mhwepskill-300)*0.04)*10)/10} `;
+    document.getElementById("playercrit").innerHTML = `${Math.round(crit*10)/10} `;
     document.getElementById("playerattackpower").innerHTML = `${Math.round(attackpower + strength*2)} `;
     document.getElementById("playerarmor").innerHTML = `${Math.round(armor)} `;
-    document.getElementById("playerparry").innerHTML = `${Math.round((parry + 5 + deflection + defense*0.04)*100)/100} `;
-    document.getElementById("playerdodge").innerHTML = `${Math.round((dodge + agility/20 + defense*0.04)*100)/100} `;
+    document.getElementById("playerblock").innerHTML = `${Math.round((block)*100)/100} `;
+    document.getElementById("playerblockvalue").innerHTML = `${Math.round(blockvalue)} `;
+    document.getElementById("playerparry").innerHTML = `${Math.round((parry)*100)/100} `;
+    document.getElementById("playerdodge").innerHTML = `${Math.round((dodge)*100)/100} `;
     document.getElementById("playerdefense").innerHTML = `${defense + 300} `;
     document.getElementById("playermhskill").innerHTML = `${mhwepskill} `;
     document.getElementById("playerohskill").innerHTML = `${ohwepskill} `;
 
-    // Add stat deltas to stats, note str/ap interaaction not accounted for.
+    // Add stat deltas to stats, note str -> ap/blockvalue interaction not accounted for.
     strength += extrastrength;
     stamina += extrastamina;
     agility += extraagility;
@@ -561,6 +595,8 @@ function updateStats()
     parry += extraparry;
     dodge += extradodge;
     defense += extradefense;
+    block += extrablock;
+    block += extrablockvalue;
     mhwepskill += extramhskill;
     ohwepskill += extraohskill;
 
@@ -610,18 +646,18 @@ function updateStats()
             OHWepSkill: _dualWield ? ohwepskill : 0,
             damageMod: _dmf ? 0.99 : 0.9, // Defensive Stance + dmf
             hastePerc: _wcb ? 15 : 0, 
-            AP: strength*2 + attackpower,
-            crit: agility/20 + crit, // TODO: add wepskill
+            AP: attackpower + strength*2,
+            crit: crit,
             spellcrit: spellcrit,
             hit: hit,
             
-            parry: parry + 5, // TODO talents, defense, check formula
-            dodge: agility/20 + dodge, // TODO: talents, defense
-            block: block + 5, // TODO talents, defense, check formula
+            parry: parry,
+            dodge: dodge,
+            block: block,
             blockValue: blockvalue,
-            defense: 300 + defense, // TODO: talents
-            baseArmor: agility*2 + armor, // TODO: talents
-            baseHealth: stamina*10, // TODO: basehealth
+            defense: 300 + defense,
+            baseArmor: armor,
+            baseHealth: (stamina*10 + extrahp)*(document.getElementById("race").value == "Tauren" ? 1.05 : 1),
 
             threatMod: 1.3 * (1 + 0.03*_defiance) * (threatenchant ? 1.02 : 1),
             critMod: 2 + _impale*0.1,

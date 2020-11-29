@@ -1957,6 +1957,25 @@ let capes = {
     skill: 0,
     skilltype: 'none'
 },
+    "Cryptfiend Silk Cloak": {
+    strength: 0,
+    stamina: 14,
+    agility: 0,
+
+    hit: 1,
+    crit: 0,
+    attackpower: 0,
+
+    armor: 203,
+    parry: 0,
+    dodge: 1,
+    defense: 7,
+    block: 0,
+    blockvalue: 0,
+
+    skill: 0,
+    skilltype: 'none'
+},
     "Dragon's Blood Cape": {
     strength: 9,
     stamina: 22,
